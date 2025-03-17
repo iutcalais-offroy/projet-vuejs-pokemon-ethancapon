@@ -8,6 +8,7 @@ const routes = [
   { path: '/deck-builder', component: DeckBuilder },
   { path: '/deck-collection', component: DeckCollectionPage },
   { path: '/login', component: LoginFormPage },
+  { path: '/pokemon', component: DeckBuilder },
 ];
 
 export const router = createRouter({

@@ -1,4 +1,3 @@
-// Faire la liste des pokemons 
 <template>
   <div class="form-container">
     <h2 v-if="isLogin">Connexion</h2>
@@ -17,58 +16,53 @@
     <button @click="toggleForm" class="toggle-btn">{{ isLogin ? "Pas de compte ? S'inscrire" : 'Déjà un compte ? Se connecter' }}</button>
     <p v-if="isLoggedIn" class="status-msg">Vous êtes connecté</p>
     <p v-else class="status-msg">Vous n'êtes pas connecté</p>
+    <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { login as apiLogin, register as apiRegister } from '../services/apiService';
 
 const email = ref('');
 const password = ref('');
 const isLogin = ref(true);
 const isLoggedIn = ref(false);
+const errorMessage = ref('');
 const router = useRouter();
 
 const toggleForm = () => {
   isLogin.value = !isLogin.value;
+  errorMessage.value = ''; // Clear error message when toggling form
 };
 
 const checkIfLoggedIn = () => {
   const token = localStorage.getItem('token');
-  if (token) {
-    isLoggedIn.value = true;
-    router.push('/deck-builder');
-  } else {
-    isLoggedIn.value = false;
-  }
+  isLoggedIn.value = !!token;
 };
 
 const login = async () => {
   try {
-    const response = await axios.post('https://pokemon-api-seyrinian-production.up.railway.app/users/login', {
-      email: email.value,
-      password: password.value,
-    });
-    localStorage.setItem('token', response.data.token);
-    localStorage.setItem('userId', response.data.userId);
+    const data = await apiLogin(email.value, password.value);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userId', data.userId);
     isLoggedIn.value = true;
-    router.push('/deck-builder');
+    errorMessage.value = ''; // Clear error message on successful login
   } catch (error) {
     console.error('Erreur de connexion:', error);
+    errorMessage.value = 'Erreur de connexion. Veuillez vérifier vos identifiants.';
   }
 };
 
 const register = async () => {
   try {
-    await axios.post('https://pokemon-api-seyrinian-production.up.railway.app/users', {
-      email: email.value,
-      password: password.value,
-    });
+    await apiRegister(email.value, password.value);
     toggleForm();
+    errorMessage.value = ''; // Clear error message on successful registration
   } catch (error) {
     console.error('Erreur d\'inscription:', error);
+    errorMessage.value = 'Erreur d\'inscription. Veuillez réessayer.';
   }
 };
 
@@ -147,5 +141,10 @@ h2 {
   margin-top: 1rem;
   color: #007bff;
 }
-</style>
 
+.error-msg {
+  text-align: center;
+  margin-top: 1rem;
+  color: #dc3545;
+}
+</style>

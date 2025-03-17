@@ -3,17 +3,34 @@
 </template>
 
 <script lang="ts" setup>
-import {computed} from 'vue'
-import {useRouter} from 'vue-router'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const isLoggedIn = ref(false);
+
+const checkIfLoggedIn = () => {
+  const token = localStorage.getItem('token');
+  isLoggedIn.value = !!token;
+};
+
+const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('userId');
+  isLoggedIn.value = false;
+  router.push('/login');
+};
+
+onMounted(() => {
+  checkIfLoggedIn();
+});
 
 const menuOptions = computed(() => [
   {
     label: 'DeckBuilder',
     key: 'deck-builder',
     onClick: () => {
-      router.push('/deck-builder');
+      router.push('/pokemon');
     }
   },
   {
@@ -23,12 +40,18 @@ const menuOptions = computed(() => [
       router.push('/deck-collection');
     }
   },
-  {
-    label: 'Login',
-    key: 'login',
-    onClick: () => {
-      router.push('/login');
-    }
-  }
+  isLoggedIn.value
+    ? {
+        label: 'Se déconnecter',
+        key: 'logout',
+        onClick: logout
+      }
+    : {
+        label: 'Se connecter',
+        key: 'login',
+        onClick: () => {
+          router.push('/login');
+        }
+      }
 ]);
 </script>
